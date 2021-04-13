@@ -5,7 +5,7 @@ from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
 import requests
-from flask import Flask, jsonify, Request
+from flask import Flask, jsonify, request
 
 # CREATE BLOCKCHAIN CLASS
 class Blockchain:
@@ -121,7 +121,8 @@ def mine():
 # MAKE A NEW TRANSACTION
 @app.route('/transaction/new', methods=['POST'])
 def new_transaction():
-    values = Request.get_json()
+    values = request.get_json()
+    print(values)
 
     # check required fields
     required = ['sender', 'recipient', 'amount']
