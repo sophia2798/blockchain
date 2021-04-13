@@ -85,6 +85,60 @@ class Blockchain:
         else:
             raise ValueError('INVALID URL')
 
+    '''
+    CODE BELOW IS THE CONSENSUS ALGORITHM - ADDRESSES CONFLICTS IN THE BLOCKCHAIN OVER DIFFERENT NODES BY FINDING THE LONGEST CHAIN AND REPLACING WITH THAT CHAIN
+    '''
+
+    # VALID CHAIN CHECK METHOD
+    def valid_chain(self, chain):
+        last_block = chain[0]
+        current_index = 1
+
+        while current_index < len(chain):
+            block = chain[current_index]
+            print(f'{last_block}')
+            print(f'{block}')
+            print("\n-----------\n")
+
+            # check if previous hash is correct
+            if block['previous_hash'] != self.hash(last_block):
+                return False
+
+            # check POW
+            if not self.valid_proof(last_block['proof'], block['proof']):
+                return False
+
+            last_block = block
+            current_index += 1
+
+        return True
+
+    # CONFLICT RESOLUTION METHOD
+    def resolve_conflicts(self):
+        neighbors = self.nodes
+        new_chain = None
+
+        max_length = len(self.chain)
+        # grab chains from all other nodes and check their length
+        for node in neighbors:
+            response = requests.get(f'http://{node}/chain')
+
+            if response.status_code == 200:
+                length = response.json()['length']
+                chain = response.json()['chain']
+
+                # compare length with current node's chain and check validity of chain
+                if length > max_length and self.valid_chain(chain):
+                    max_length = length
+                    new_chain = chain
+
+        # replace with new longest chain
+        if new_chain:
+            self.chain = new_chain
+            return True
+
+        return False
+
 '''
 CODE BELOW IS FOR SETTING UP API TO MAKE HTTP REQUESTS TO THE BLOCKCHAIN
 '''
