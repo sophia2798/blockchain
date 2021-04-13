@@ -87,14 +87,28 @@ node_id = str(uuid4()).replace('-','')
 blockchain = Blockchain()
 
 # CREATE ROUTES
+# mine a new block
 @app.route('/mine', methods=['GET'])
 def mine():
     return "We'll mine a new Block"
 
+# make a new transaction
 @app.route('/transaction/new', methods=['POST'])
 def new_transaction():
-    return "We'll add a new transaction"
+    values = request.get_json()
 
+    # check required fields
+    required = ['sender', 'recipient', 'amount']
+    if not all (k in values for k in required):
+        return 'MISSING VALUES', 400
+
+    # create new transaction
+    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+    response = {'message': f'Transaction will be added to Block {index}'}
+
+    return jsonify(response), 201
+
+# get the full chain and length
 @app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
