@@ -12,7 +12,7 @@ class Blockchain:
     def __init__(self):
         self.current_transactions = []
         self.chain = []
-        self.nodes = set()
+        self.nodes = set() # for idempotency
 
         # CREATE GENESIS BLOCK
         self.new_block(previous_hash=1, proof=100)
@@ -72,6 +72,18 @@ class Blockchain:
         guess_hash = hashlib.sha256(guess).hexdigest()
 
         return guess_hash[:4] == '0000'
+
+    # REGISTERING NODE METHOD (add new ndoe to list of nodes)
+    def register_node(self, address):
+        parsed_url = urlparse(address)
+
+        if parsed_url.netloc:
+            self.nodes.add(parsed_url.netloc)
+        elif parsed_url.path:
+            # accepts url without a 'xxx.xxx.x.x:xxxx' scheme
+            self.nodes.add(parsed_url.path)
+        else:
+            raise ValueError('INVALID URL')
 
 '''
 CODE BELOW IS FOR SETTING UP API TO MAKE HTTP REQUESTS TO THE BLOCKCHAIN
