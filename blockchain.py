@@ -18,7 +18,7 @@ class Blockchain:
         self.new_block(previous_hash=1, proof=100)
 
     # NEW BLOCK METHOD (create new block and add to the chain)
-    def new_block(self, proof, previous_hash):
+    def new_block(self, proof, previous_hash=None):
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
@@ -42,3 +42,34 @@ class Blockchain:
         })
 
         return self.last_block['index'] + 1
+
+    # PROPERTY DECORATOR TO RETURN THE LAST BLOCK
+    @property
+    def last_block(self):
+        return self.chain[-1]
+
+    # HASH METHOD (create SHA-256 hash of a block)
+    # TURN HASH METHOD INTO STATIC METHOD (cannot modify class or object)
+    @staticmethod
+    def hash(block):
+        # must have an ORDERED dictionary
+        block_string = json.dumps(block, sort_keys=True).encode()
+
+        return hashlib.sha256(block_string).hexdigest()
+
+    # PROOF OF WORK (POW) METHOD (where check condition is hash(pp') has 4 leading 0s)
+    def proof_of_work(self, last_proof):
+        proof = 0
+        while self.valid_proof(last_proof, proof) is False:
+            proof += 1
+
+        return proof
+
+    # TURN VALID PROOF METHOD INTO STATIC METHOD (validates if hash has 4 leading 0s)
+    @staticmethod
+    def valid_proof(last_proof, proof):
+        guess = f'{last_proof}{proof}'.encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+
+        return guess_hash[:4] == '0000'
+
